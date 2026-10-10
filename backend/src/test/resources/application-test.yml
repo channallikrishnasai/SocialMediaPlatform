@@ -1,0 +1,71 @@
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/socialmedia_test}
+    username: ${TEST_DB_USER:postgres}
+    password: ${TEST_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+  session:
+    store-type: none
+
+  data:
+    redis:
+      host: ${TEST_REDIS_HOST:localhost}
+      port: ${TEST_REDIS_PORT:6379}
+      password: ${TEST_REDIS_PASSWORD:}
+      ssl:
+        enabled: ${TEST_REDIS_SSL:false}
+      repositories:
+        enabled: false
+
+  kafka:
+    bootstrap-servers: ${TEST_KAFKA_SERVERS:localhost:9092}
+    properties:
+      sasl.mechanism: ${TEST_KAFKA_SASL_MECHANISM:PLAIN}
+      security.protocol: ${TEST_KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+      sasl.jaas.config: ${TEST_KAFKA_JAAS_CONFIG:}
+    producer:
+      retries: 0
+    consumer:
+      auto-offset-reset: earliest
+      group-id: social-media-test-group
+    listener:
+      type: single
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+
+jwt:
+  secret: ${TEST_JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  expiration: 3600000
+  refresh-expiration: 86400000
+
+# The whole test suite runs in one JVM/Spring context, so the production authApi rate
+# limiter (5 calls/60s) is shared across every controller/integration test that hits
+# /api/auth/**, and gets exhausted well before the suite finishes - this is a test
+# isolation concern, not a production rate-limiting concern, so it's relaxed here only.
+resilience4j:
+  ratelimiter:
+    instances:
+      authApi:
+        limit-for-period: 10000
+        limit-refresh-period: 60s
+        timeout-duration: 0s
+
+logging:
+  level:
+    com.socialmedia.platform: DEBUG
+    org.springframework.security: INFO
+
+server:
+  port: 10000
