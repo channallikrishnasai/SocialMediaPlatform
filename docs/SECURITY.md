@@ -1,6 +1,6 @@
 # Security
 
-This project keeps the application and its users protected by default, but security is only as strong as the environment that runs it. The implementation is designed around JWT-based API auth, structured authorization, and conservative defaults.
+This project implements JWT-based API authentication and resource authorization. The current configuration also contains development-oriented settings that must be reviewed before deployment.
 
 ## Trust boundaries
 
@@ -28,15 +28,15 @@ The project keeps development convenience separate from production settings:
 
 ## CORS and web security
 
-- CORS is explicitly constrained by configuration instead of allowing all origins.
-- CSRF protection remains enabled for browser-based flows in the default Spring Security configuration.
-- Actuator exposure is limited to health, info, metrics, and Prometheus endpoints.
-- Swagger/OpenAPI remains available for local development and should be restricted in production deployments.
+- The current `SecurityConfig` allows all origin patterns (`*`) while allowing credentials. This is permissive and must be restricted to trusted origins before deployment.
+- CSRF protection is disabled in the current stateless API configuration. Reassess this if browser-cookie authentication or other stateful browser flows are introduced.
+- Actuator exposure is limited to health, info, metrics, and Prometheus endpoints, but `/actuator/**` is currently permitted by the HTTP security rules.
+- Swagger/OpenAPI remains publicly permitted by the current configuration and should be restricted in production deployments.
 
 ## WebSocket and OAuth
 
-- WebSocket authentication requires a valid JWT in the STOMP handshake or equivalent authenticated connection flow.
-- Google OAuth is optional and only works when valid client credentials are configured.
+- WebSocket authentication requires a valid JWT in the STOMP `CONNECT` frame; the HTTP `/ws` handshake itself is permitted.
+- The Google OAuth client and backend success handler are configured, but the frontend has no sign-in entry or token-capture route. The handler redirects JWTs in URL query parameters; do not expose this as a usable production flow without redesigning token delivery. External-provider login also requires valid client credentials.
 - Redirect URIs must match the actual deployed frontend and Google OAuth configuration exactly.
 
 ## Production precautions

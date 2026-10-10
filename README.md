@@ -1,428 +1,336 @@
-# Social Media Platform
+<p align="center">
+  <img src="assets/readme-hero.svg" alt="Animated 3D-inspired Social Media Platform illustration" width="100%">
+</p>
 
-A social media platform built with Spring Boot and React + TypeScript: posts, follows, a
-chronological following-based feed, Redis-backed caching, Kafka-driven notifications, and
-authenticated real-time WebSocket delivery.
+<p align="center">
+  <a href="https://github.com/channallikrishnasai/SocialMediaPlatform/actions/workflows/ci-cd.yml">
+    <img src="https://github.com/channallikrishnasai/SocialMediaPlatform/actions/workflows/ci-cd.yml/badge.svg?branch=main" alt="CI/CD Pipeline status">
+  </a>
+  <img src="https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white" alt="Java 17">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 3.2">
+  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black" alt="React 18">
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-8B5CF6.svg" alt="MIT License"></a>
+</p>
 
-This README describes what is actually implemented and verified. See
-[docs/VERIFICATION_REPORT.md](docs/VERIFICATION_REPORT.md) for the full audit trail: what was
-broken, what was fixed, and exactly how each claim below was checked against real
-PostgreSQL/Redis/Kafka, not mocks.
+<p align="center">
+  <strong>Real-time social experiences, built as a full-stack engineering project.</strong><br>
+  Spring Boot · React · PostgreSQL · Redis · Kafka · WebSockets
+</p>
 
-## Table of Contents
+> The hero is original SVG concept artwork—not a screenshot of the running application. No hosted demo or product recording is published.
 
-- [Overview](#overview)
-- [Tech Stack](#tech-stack)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [API Documentation](#api-documentation)
-- [Security](#security)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Observability](#observability)
-- [Known Limitations](#known-limitations)
-- [Contributing](#contributing)
+## Navigate
 
-## Overview
+[Introduction](#project-introduction) · [Features](#feature-matrix) · [Stack](#tech-stack) · [Architecture](#architecture) · [User flow](#core-user-flow) · [Notifications](#notification-sequence) · [Responsibilities](#system-responsibilities) · [Automation](#automation-and-cicd) · [Testing](#testing-dashboard) · [Setup](#getting-started) · [API & security](#api-and-security) · [Roadmap](#limitations-and-roadmap) · [Contributing](#contributing-and-attribution)
 
-This platform enables users to:
-- Create, edit, and delete posts (image posts use a URL string, not a server-side upload)
-- Like, comment, and share posts
-- Follow/unfollow other users
-- Receive real-time notifications via an authenticated WebSocket/STOMP connection
-- View a chronological feed of posts from people they follow
+## Project introduction
 
-## Tech Stack
+A full-stack social platform for publishing posts, building a follow graph, browsing a chronological feed, and receiving asynchronous notifications. The Java API and React client run with PostgreSQL, Redis, Kafka, and a STOMP/SockJS notification channel.
 
-### Backend
-- **Java 17** with Spring Boot 3.2
-- **PostgreSQL** - primary database, schema managed by Flyway migrations
-- **Redis** - feed caching (Spring Cache abstraction, manually instrumented for hit/miss metrics)
-- **Kafka** - a single `notification-events` topic carries all notification types (new
-  follower, post liked, commented, shared) from producer to consumer
-- **WebSocket (STOMP over SockJS)** - real-time notifications, authenticated via JWT passed
-  as a STOMP CONNECT header (see [Security](#security))
-- **Spring Security** - JWT (HS256) + optional Google OAuth2 login
-- **Swagger/OpenAPI** - API documentation
-- **Spring Boot Actuator + Micrometer/Prometheus** - health, metrics, custom counters
+**Implemented:** email/password registration and login, JWT access/refresh flow, post CRUD, likes, comments, shares, follow lists, a following-based feed, feed caching, persisted notifications, and live delivery to connected users.
 
-### Frontend
-- **React 18** with TypeScript
-- **Redux Toolkit** - state management
-- **React Query** - data fetching and caching
-- **Material UI** - component library
-- **Axios** - HTTP client with a refresh-token interceptor
-- **Vite** - build tool
-- **@stomp/stompjs + sockjs-client** - WebSocket notifications client
+**Incomplete or environment-dependent:** Google OAuth2 has backend support but no frontend sign-in/callback flow and needs real provider credentials for runtime verification; the Settings screen and navbar search are placeholders; images are URL references, not uploaded files; and no cloud deployment target is configured.
 
-### DevOps
-- **Docker + Docker Compose** - full local stack (Postgres, Redis, Kafka, backend, frontend)
-- **GitHub Actions** - backend build+test (incl. Testcontainers integration tests, which run
-  for real on GitHub-hosted runners since they have Docker), frontend build+test, and a
-  full docker-compose end-to-end verification job (`scripts/verify.sh`)
-- **AWS ECS/S3/CloudFront** - **not implemented**. See [Known Limitations](#known-limitations).
+## Feature matrix
 
-## Features
+| Feature | Description | Implementation |
+|---|---|---|
+| Authentication | Registration and login | **Implemented** — email/password, BCrypt, signed access and refresh JWTs; Google OAuth is partial (backend configured; no frontend launch/callback flow) |
+| Posts | Create, edit and delete | **Implemented** — ownership checks; optional `imageUrl` and shared-post reference |
+| Engagement | Likes, comments and shares | **Implemented** — likes/comments and share posts; relevant interactions publish notifications |
+| Social graph | Follow and unfollow | **Implemented** — follower/following lists; duplicate follows are idempotent |
+| Feed | Chronological following-based feed | **Implemented** — newest first, posts from followed users plus the viewer's own posts |
+| Caching | Redis-backed feed caching | **Implemented** — 10-minute TTL, hit/miss metrics, broad cache eviction on post/follow changes |
+| Notifications | Kafka and WebSocket flow | **Implemented** — async event, database persistence, then STOMP push when the recipient is connected |
+| Observability | Actuator and metrics | **Implemented** — health, metrics, Prometheus, and custom counters |
+| Search and settings | Search users/posts and account settings | **Planned** — search input is presentational; Settings currently displays “coming soon” |
 
-### Authentication & Authorization
-- Email/password registration and login, JWT access + refresh tokens
-- Optional Google OAuth2 login (code is real - JWT is issued on successful OAuth2 login -
-  but requires real `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` to exercise; not runtime-verified
-  in CI since that would require live Google credentials)
-- Role-based access control (USER, ADMIN)
-- Rate limiting on auth/posts/feed endpoints (Resilience4j `@RateLimiter`, actually wired to
-  those endpoints, not just a dependency)
+## Tech stack
 
-### Posts
-- Create posts with text and an optional image URL
-- Edit/delete own posts (ownership enforced, returns 403 otherwise)
-- Like/unlike posts, idempotent under concurrent duplicate requests (DB unique constraint on
-  `(post_id, user_id)`, verified by `ConcurrencyIntegrationTest`)
-- Comment on posts, share posts
-- Pagination support
-
-### Social Features
-- Follow/unfollow users, idempotent under concurrent duplicate requests (DB unique constraint
-  on `(follower_id, following_id)`, verified by `ConcurrencyIntegrationTest`)
-- Followers/following lists
-- Chronological feed of posts from followed users (plus your own) - this is **not** a ranked
-  or ML-personalized feed, just "everyone you follow, newest first"
-
-### Notifications
-- New follower, post liked, post commented, post shared - all four flow through one Kafka
-  topic/event type, consumed by a single `@KafkaListener`, persisted, then pushed live over
-  WebSocket to the recipient if they're connected
-- Unread count, mark-as-read / mark-all-as-read
-
-### Performance
-- Redis-backed feed cache (10-minute TTL), manually instrumented so hits/misses are real
-  Prometheus counters (`feed.cache.hit` / `feed.cache.miss`), not just an unused annotation
-- Cache is invalidated (`allEntries=true` on the `userFeed` cache) whenever the current user
-  creates a post, follows, or unfollows - simple and correct, at the cost of evicting other
-  users' unrelated cached feed pages too (a deliberate simplicity/consistency tradeoff, not a
-  partial per-user invalidation scheme)
-- Database indexing, HikariCP connection pooling, pagination
+| Area | Technologies |
+|---|---|
+| Frontend | React 18, TypeScript, Vite, Material UI, Redux Toolkit, TanStack Query, Axios |
+| Backend | Java 17, Spring Boot 3.2, Spring MVC, Spring Data JPA, Spring Security, Flyway |
+| Data storage | PostgreSQL 15 for durable application data; Redis 7 for the feed cache |
+| Messaging | Apache Kafka with ZooKeeper in Compose; one `notification-events` topic (3 partitions, 1 replica) |
+| Authentication | Spring Security, BCrypt, HS256 JWT access/refresh tokens, optional Google OAuth2 |
+| Real-time transport | STOMP over WebSocket/SockJS, authenticated using a JWT in the STOMP `CONNECT` frame |
+| Testing | JUnit 5, Spring tests, Testcontainers, Vitest, React Testing Library, Playwright |
+| Infrastructure | Docker, Docker Compose, Nginx frontend container |
+| Automation and observability | GitHub Actions, Dependabot, Spring Boot Actuator, Micrometer, Prometheus |
 
 ## Architecture
 
-### System Architecture
+The browser reaches the Spring Security filter chain for REST requests and separately opens the authenticated STOMP connection. The feed path reads/writes Redis and falls back to PostgreSQL. Notification-producing actions publish to Kafka; a consumer persists each notification before attempting live delivery.
 
-```
-┌─────────────┐
-│   Client    │
-│  (React)    │
-└──────┬──────┘
-       │
-       ├─── HTTP/REST ────┐
-       │                  │
-       └─── WebSocket ────┤
-                          │
-                    ┌─────▼──────┐
-                    │   Nginx    │
-                    │  (Reverse  │
-                    │   Proxy)   │
-                    └─────┬──────┘
-                          │
-                    ┌─────▼────────┐
-                    │  Spring Boot │
-                    │   Backend    │
-                    └──┬───┬───┬───┘
-                       │   │   │
-           ┌───────────┘   │   └──────────┐
-           │               │              │
-      ┌────▼────┐    ┌────▼────┐   ┌────▼────┐
-      │  Redis  │    │ Postgres│   │  Kafka  │
-      │ (Cache) │    │   (DB)  │   │ (Events)│
-      └─────────┘    └─────────┘   └─────────┘
+```mermaid
+flowchart LR
+    Browser["Browser / React + TypeScript"]
+    Security["Spring Security<br/>JWT filter"]
+    API["Spring Boot REST API"]
+    DB[("PostgreSQL<br/>users · posts · follows · notifications")]
+    Redis[("Redis<br/>user feed cache")]
+    Kafka[("Kafka<br/>notification-events")]
+    Consumer["NotificationService<br/>Kafka consumer"]
+    Broker["STOMP user destination<br/>in-memory simple broker"]
+
+    Browser -->|"HTTP REST · access JWT in Authorization header"| Security
+    Security -->|"authenticated request"| API
+    API -->|"JPA persistence"| DB
+    API <-->|"feed cache read / write"| Redis
+    API -->|"async notification event"| Kafka
+    Kafka -->|"consumed asynchronously"| Consumer
+    Consumer -->|"persist notification"| DB
+    Consumer -->|"send to recipient user id"| Broker
+    Browser <-->|"SockJS / STOMP · JWT CONNECT"| Broker
 ```
 
-### Data Flow
+## Core user flow
 
-1. **User Request** → Frontend → Backend API
-2. **Authentication** → JWT validation → process request
-3. **Database Query** → check Redis cache → query PostgreSQL on miss → populate cache
-4. **Async Events** → publish to Kafka → `NotificationConsumer` persists a `Notification`
-5. **Real-time Updates** → the same consumer pushes over WebSocket to the recipient's
-   authenticated STOMP session, if connected
+Feed retrieval and notification production are related user journeys, not one synchronous transaction. Only follow, like, comment, and share actions produce notification events; creating or viewing a post does not.
 
-## Getting Started
+```mermaid
+flowchart TD
+    A["Register or log in"] --> B["API returns access + refresh tokens"]
+    B --> C["Use access token on protected REST requests"]
+    C --> D["Create, view, or manage posts"]
+    C --> E["Follow users · like · comment · share"]
+    E --> F["Feed reads followed users' posts<br/>plus your own, newest first"]
+    F --> G{"Redis cache"}
+    G -->|"hit"| H["Return cached page"]
+    G -->|"miss"| I["Query PostgreSQL, then cache page"]
+    E -->|"notification-producing actions only"| J["Publish NotificationEvent"]
+    J --> K["Kafka consumer persists notification"]
+    K --> L["Push to recipient if connected"]
+```
+
+## Notification sequence
+
+The recipient's STOMP session is established independently of the action. The REST action does not wait for a WebSocket push: Kafka consumption and notification persistence happen asynchronously.
+
+```mermaid
+sequenceDiagram
+    participant Actor as React client (actor)
+    participant API as Spring Boot API
+    participant DB as PostgreSQL
+    participant K as Kafka
+    participant C as NotificationService
+    participant WS as STOMP broker
+    participant Recipient as React client (recipient)
+
+    Recipient->>WS: Connect to /ws with JWT in STOMP CONNECT
+    Recipient->>WS: Subscribe to /user/queue/notifications
+    Actor->>API: Like, comment, share, or follow with access JWT
+    API->>DB: Persist domain change
+    API-->>K: Publish NotificationEvent (asynchronous)
+    API-->>Actor: Return REST response
+    K-->>C: Deliver notification-events record
+    C->>DB: Persist Notification
+    C->>WS: convertAndSendToUser(recipientId, ...)
+    opt Recipient still connected
+        WS-->>Recipient: Push persisted notification
+    end
+```
+
+## System responsibilities
+
+| Component | Responsibility | Important behavior |
+|---|---|---|
+| React | Authenticated user interface | Axios attaches access JWTs and refreshes on 401; Redux stores auth/notification state; React Query fetches API data |
+| Spring Boot | REST API and application services | Spring Security protects API routes; services enforce resource ownership and produce notification events |
+| PostgreSQL | Durable application persistence | Stores users, posts, follows, likes, comments, and notifications; Flyway manages schema |
+| Redis | Feed-page cache | Feed cache has a 10-minute TTL; mutations evict all entries in the `userFeed` cache |
+| Kafka | Asynchronous notification event transport | `notification-events` has one event DTO and consumer; no dead-letter topic or notification deduplication is configured |
+| WebSocket | Live notification delivery | STOMP/SockJS with JWT-validated CONNECT; Spring's simple broker routes to connected sessions and is not a clustered broker |
+| GitHub Actions | Build, test, end-to-end check, and image publishing | CI/CD jobs are defined in `.github/workflows/ci-cd.yml`; the final deploy job is explicitly a no-op |
+
+Actuator exposes `/actuator/health`, `/actuator/metrics`, and `/actuator/prometheus`. Custom meters cover `posts.created`, `follows.created`, `likes.created`, `feed.cache.hit`, `feed.cache.miss`, `kafka.events.produced`, `kafka.notifications.consumed`, and `websocket.notifications.sent`.
+
+## Automation and CI/CD
+
+The workflow below documents configured behavior, not a promise that every future run will pass.
+
+| Automation | Trigger | What it does |
+|---|---|---|
+| Backend verification | Push or pull request to `main` / `develop` | Java 17; `mvn verify`, then packages the backend artifact |
+| Frontend verification | Push or pull request to `main` / `develop` | Node 20; `npm ci`, lint, Vitest, production build, and artifact upload |
+| Full-stack verification | After backend and frontend jobs succeed | Runs `bash scripts/verify.sh` against Docker Compose services |
+| Container publishing | Push to `main`, after verification jobs succeed | Builds and pushes backend and frontend images to GHCR |
+| Deployment placeholder | Push to `main`, after image publishing | Prints that no deployment target is configured; it does not deploy |
+| Dependabot | Weekly schedule | Checks GitHub Actions, Maven, and npm dependencies and can open update PRs |
+
+**Latest observed status:** the most recent `main` push before this documentation change completed successfully on `22bae00` ([workflow run](https://github.com/channallikrishnasai/SocialMediaPlatform/actions/runs/38007939452), 2026-10-10 UTC). That run predates this README/SVG commit; its status does not validate the new commit. The badge at the top is live.
+
+Image publishing is automated; deployment remains manual and requires external service accounts, environment configuration, and provider setup. See [DEPLOYMENT_FREE.md](DEPLOYMENT_FREE.md); it is a guide, not a live deployment or infrastructure-as-code configuration.
+
+```mermaid
+flowchart LR
+    Event["push / pull request<br/>main or develop"] --> Backend["backend<br/>mvn verify + package"]
+    Event --> Frontend["frontend<br/>lint + test + build"]
+    Backend --> E2E["docker-e2e<br/>bash scripts/verify.sh"]
+    Frontend --> E2E
+    E2E -->|"push to main only"| Publish["Build and publish<br/>backend + frontend to GHCR"]
+    Publish --> Placeholder["deploy-placeholder<br/>no-op · no target configured"]
+```
+
+## Testing dashboard
+
+| Check | Command | Requirements |
+|---|---|---|
+| Backend unit and controller-slice tests | `cd backend && mvn test -Dtest='!*IntegrationTest'` | JDK 17 and Maven |
+| Backend suite, including Testcontainers integration tests | `cd backend && mvn verify` | JDK 17, Maven, and a working Docker daemon |
+| Frontend lint | `cd frontend && npm ci && npm run lint` | Node.js 20 and npm |
+| Frontend tests | `cd frontend && npm test -- --run` | Node.js 20 and npm |
+| Frontend production build | `cd frontend && npm run build` | Node.js 20 and npm |
+| Browser E2E (Playwright) | Start the app, then `cd frontend && E2E_BASE_URL=http://localhost:3000 npm run test:e2e` | App reachable at the base URL and Playwright Chromium installed |
+| Docker-based full-stack verification | `bash scripts/verify.sh` | Docker, Maven, Node/npm, curl, and jq |
+
+`scripts/verify.sh` builds and tests the services, exercises registration, posts, follows, feed caching, Kafka notifications, WebSocket delivery, and metrics against a Compose stack, then tears it down with `docker compose down -v`. **That cleanup removes the Compose database volume.** Do not run it if you need to preserve data in that volume.
+
+**Validation for this README update:** backend unit/controller suite — 47 passed; frontend lint — passed; Vitest — 5 passed; production build — passed with Vite's non-blocking warning that the minified JavaScript chunk exceeds 500 kB. `mvn verify` was attempted but its four Testcontainers integration tests could not initialize: this environment's Docker daemon requires API 1.40 while the available Docker client requests 1.32. The Docker-based full-stack script was not run because its cleanup removes the Compose database volume. The [verification report](docs/VERIFICATION_REPORT.md) separately records 51 backend tests passing in an earlier GitHub Actions run. No performance or load-test measurements are claimed.
+
+The earlier verification report also documents `ConcurrencyIntegrationTest`: ten simultaneous duplicate follow requests and ten duplicate like requests resulted in one database row per operation on its Testcontainers-backed run.
+
+## Getting started
 
 ### Prerequisites
 
-- Java 17+
-- Node.js 20+
-- Docker and Docker Compose
-- Maven 3.9+
+- Docker Engine with the Compose plugin
+- Java 17 and Maven for local backend development
+- Node.js 20 and npm for local frontend development
+- `curl` and `jq` for the full verification script
 
-### Local Development Setup
+### Run the complete stack
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/danishirfan21/Social-Media-Platform.git
-cd Social-Media-Platform
-```
-
-2. **Set up backend**
-```bash
-cd backend
-cp .env.example .env
-# Edit .env with your configuration
-mvn clean install
-```
-
-3. **Set up frontend**
-```bash
-cd frontend
-cp .env.example .env
-npm install
-```
-
-4. **Start services with Docker Compose**
-```bash
-docker compose up -d postgres redis kafka zookeeper
-```
-
-5. **Run backend**
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-6. **Run frontend**
-```bash
-cd frontend
-npm run dev
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui.html
-- Actuator: http://localhost:8080/actuator
-
-### Docker Setup (Full Stack)
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Or run the full verification (build, tests, stack startup, and a real end-to-end check of
-every claim above) with:
+Compose starts PostgreSQL, Redis, ZooKeeper, Kafka, the API, and the frontend. Its embedded database credentials and JWT secret are local-development defaults—do not reuse them outside a disposable local environment. Compose does not automatically load `backend/.env.example` or `frontend/.env.example`.
+
+For standalone backend development, the configurable variables are documented in [`backend/.env.example`](backend/.env.example); the Vite API URL is documented in [`frontend/.env.example`](frontend/.env.example). Database, Redis, Kafka, and JWT settings are needed for a local backend; Google OAuth values are optional and require a registered Google OAuth client.
+
+| Service | Local address |
+|---|---|
+| Frontend | [http://localhost:3000](http://localhost:3000) |
+| Backend API | [http://localhost:8080](http://localhost:8080) |
+| Swagger UI | [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
+| OpenAPI JSON | [http://localhost:8080/api-docs](http://localhost:8080/api-docs) |
+| Health | [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health) |
+| Prometheus metrics | [http://localhost:8080/actuator/prometheus](http://localhost:8080/actuator/prometheus) |
+
+Stop the stack while retaining its named database volume with `docker compose down`. Use `docker compose down -v` only when you intend to delete local database data.
+
+### Local development
+
+Start the infrastructure containers:
 
 ```bash
-bash scripts/verify.sh
+docker compose up -d postgres redis zookeeper kafka
 ```
 
-**Note on the frontend and Docker:** Vite inlines `VITE_API_BASE_URL` into the JS bundle at
-*build* time, not at container start time - `frontend/Dockerfile` takes it as a build `ARG`,
-and `docker-compose.yml` supplies it via `build.args`. Setting an `environment:` variable on
-the running frontend container does nothing; if you need a different backend URL, rebuild the
-image with a different build arg.
-
-## API Documentation
-
-### Authentication
-
-#### Register
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "SecurePass123"
-}
-```
-
-#### Login
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "SecurePass123"
-}
-```
-
-#### Response
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-  "tokenType": "Bearer",
-  "expiresIn": 86400,
-  "user": {
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com"
-  }
-}
-```
-
-### Posts
-
-#### Create Post
-```http
-POST /api/posts
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "content": "Hello, world!",
-  "imageUrl": "https://example.com/image.jpg"
-}
-```
-
-#### Get Feed
-```http
-GET /api/feed?page=0&size=20
-Authorization: Bearer {token}
-```
-
-### Full API Documentation
-
-Access complete API documentation at: http://localhost:8080/swagger-ui.html
-
-## Security
-
-### Implemented Security Measures
-
-1. **Authentication**
-   - JWT access + refresh tokens, **HS256/HMAC signed** (the secret in `JWT_SECRET`) - not
-     RS256/RSA, despite what earlier versions of this README claimed. There is no RSA keypair
-     anywhere in this codebase; correcting that claim rather than bolting on unused RSA
-     infrastructure just to match old docs.
-   - BCrypt password hashing
-   - Optional Google OAuth2 login, issuing the same app JWTs on success
-2. **Authorization**
-   - Role-based access control
-   - Resource ownership validation (post edit/delete, profile update, notification
-     mark-as-read all return 403 via a dedicated `ForbiddenException`, not a generic 500)
-3. **WebSocket authentication**
-   - The `/ws` handshake itself is unauthenticated at the HTTP layer (browsers can't attach a
-     Bearer header to a WebSocket upgrade), so the JWT is instead passed as a STOMP `CONNECT`
-     header and validated by `WebSocketAuthChannelInterceptor`, which attaches the resolved
-     user id as the STOMP session's Principal. Without this, `convertAndSendToUser(...)` has
-     no session to route a message to - it's not just decorative config.
-4. **Network Security**
-   - CORS configuration
-   - Rate limiting (Resilience4j, applied to real endpoints - see Features above)
-   - No HTTPS enforcement in this codebase (TLS is expected to be terminated by whatever
-     reverse proxy/host you deploy behind; nothing here rejects plain HTTP)
-5. **Data Protection**
-   - Bean Validation on request DTOs
-   - SQL injection prevention via JPA/parameterized queries
-   - Global exception handler no longer leaks raw exception messages on unexpected 500s
-6. **Monitoring**
-   - Spring Boot Actuator, health checks, Prometheus metrics
-
-### Environment Variables
-
-Create `.env` file based on `.env.example` (see `backend/.env.example` for the full list,
-including comments on when `REDIS_SSL_ENABLED` needs to be true vs false):
-
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=socialmedia
-DB_USER=postgres
-DB_PASSWORD=<strong-password>
-
-# JWT
-JWT_SECRET=<256-bit-secret-key>
-JWT_EXPIRATION=86400000
-
-# OAuth2 (optional)
-GOOGLE_CLIENT_ID=<your-client-id>
-GOOGLE_CLIENT_SECRET=<your-client-secret>
-FRONTEND_URL=http://localhost:3000
-```
-
-To actually test Google login: create OAuth 2.0 credentials in the
-[Google Cloud Console](https://console.cloud.google.com/), and add
-`http://localhost:8080/login/oauth2/code/google` (plus your real domain's equivalent for a
-deployed instance) as an authorized redirect URI.
-
-## Testing
-
-### Backend Tests
+In a terminal at the repository root, load the backend's example values for local use, then start Spring Boot:
 
 ```bash
+cp backend/.env.example backend/.env
+set -a
+. ./backend/.env
+set +a
 cd backend
-mvn test          # unit + controller-slice tests, no Docker required
-mvn verify         # also runs Testcontainers integration tests - requires Docker
+mvn spring-boot:run
 ```
 
-`ConcurrencyIntegrationTest` fires 10 simultaneous duplicate follow/like requests and asserts
-exactly one row results in each case, backed by the database unique constraints, not just
-JVM-level locking.
-
-### Frontend Tests
+Review the copied file before sourcing it and replace placeholder values for any external integration. In a second terminal:
 
 ```bash
 cd frontend
-npm test
-npm run test:ui
+npm ci
+npm run dev
 ```
 
-### E2E Tests
+Vite serves the development client at [http://localhost:5173](http://localhost:5173). The default API base URL is `http://localhost:8080/api`.
 
-The README previously claimed Cypress; the actual e2e spec (`frontend/e2e/happy-path.spec.ts`)
-uses **Playwright** and the Cypress dependency was unused dead weight - it's been removed.
+### Troubleshooting
 
-```bash
-cd frontend
-npm run build && npm run preview &   # or point E2E_BASE_URL at a running instance
-npm run test:e2e
-```
+- **Port already in use:** stop the conflicting service or adjust the published ports in `docker-compose.yml`.
+- **Backend starts before dependencies are ready:** check `docker compose ps` and wait for PostgreSQL, Redis, Kafka, and the backend health check.
+- **Cannot connect to PostgreSQL or Redis locally:** confirm the local services are running and that the backend uses `localhost` settings, not Compose-only service names.
+- **Managed Redis connection fails:** TLS must match the provider; set `REDIS_SSL_ENABLED=true` for TLS-only Redis and leave it `false` for the local Compose Redis.
+- **Container frontend points at the wrong API:** `VITE_API_BASE_URL` is baked into the Vite bundle at image-build time. Rebuild the frontend image after changing its build argument.
+- **Google sign-in does not complete:** sample OAuth values are placeholders; configure a real client ID, secret, and matching redirect URI.
 
-## Deployment
+For the expanded local checklist, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
 
-### Free-tier Deployment (verified path this project actually uses)
+## API and security
 
-See [DEPLOYMENT_FREE.md](DEPLOYMENT_FREE.md) - Neon (Postgres), Upstash (Redis), Aiven
-(Kafka), Render (backend), Vercel (frontend).
+### Authentication model
 
-### Hypothetical Cloud Architecture (not implemented)
+`POST /api/auth/register` and `POST /api/auth/login` return an access token, refresh token, and user payload. Access tokens are configured for 24 hours and refresh tokens for 7 days. Protected REST calls include the access JWT in the `Authorization` header. `POST /api/auth/refresh` accepts the refresh token in the `Refresh-Token` header. The frontend stores both tokens in `localStorage` and its Axios interceptor retries a request once after a 401.
 
-Earlier versions of this README described AWS ECS + S3 + CloudFront + RDS + ElastiCache as
-a "production" deployment target. None of that exists in this repository: there's no ECS
-task definition, no Terraform/CDK, no S3 upload code (the AWS SDK dependency was removed -
-image posts are a plain URL string), and no CloudFront config. If you want to build that out,
-it's a reasonable next step, not something to claim as already done.
+Passwords are BCrypt-hashed. Access and refresh tokens are HMAC/HS256-signed JWTs. Spring Security is stateless for REST API requests; user-specific services enforce ownership for protected operations. A user role is stored, but no role-based endpoint policy is currently configured. Google OAuth2 is incomplete: the backend success handler issues JWTs in URL query parameters, but React has no sign-in entry or callback handler to capture them. Do not treat this as a usable client flow; it also lacks live verification with real Google credentials.
 
-## Observability
+For WebSockets, the `/ws` HTTP handshake is permitted, while the STOMP `CONNECT` frame must carry a valid JWT in its `Authorization` header. The backend binds the authenticated user ID to the session and sends notifications to `/user/queue/notifications`.
 
-- `/actuator/health`, `/actuator/metrics`, `/actuator/prometheus`
-- Custom counters, all real and incremented by actual code paths (not aspirational):
-  `posts.created`, `follows.created`, `likes.created`, `feed.cache.hit`, `feed.cache.miss`,
-  `kafka.events.produced`, `kafka.notifications.consumed`, `websocket.notifications.sent`
+### API reference
 
-## Known Limitations
+OpenAPI is configured at `/api-docs` and Swagger UI at `/swagger-ui.html` (both available locally at the addresses above). Public access is allowed by the current security configuration; restrict these endpoints in a public production deployment.
 
-- No Google Cloud test credentials in CI, so OAuth2 login is implemented but not
-  runtime-verified end-to-end here - manual verification with real credentials is on you.
-- Image "upload" is a URL field; there's no file upload endpoint or object storage.
-- The feed is chronological only - no ranking, no ML personalization.
-- No HTTPS enforcement inside the app itself.
-- `react-router-dom` v6 has two known moderate CVEs with no non-breaking fix available at
-  time of writing; upgrading to v7 is a reasonable follow-up but out of scope here.
+| Method and path | Purpose |
+|---|---|
+| `POST /api/auth/register`, `POST /api/auth/login` | Create an account or authenticate |
+| `POST /api/auth/refresh` | Exchange the `Refresh-Token` header for a new token response |
+| `GET /api/feed?page=0&size=20` | Read the paginated chronological feed |
+| `POST /api/posts`, `PUT /api/posts/{postId}`, `DELETE /api/posts/{postId}` | Create and manage owned posts |
+| `POST /api/posts/{postId}/like`, `DELETE /api/posts/{postId}/like` | Like or unlike a post |
+| `POST /api/posts/{postId}/comments` | Comment on a post |
+| `POST /api/users/{userId}/follow`, `DELETE /api/users/{userId}/follow` | Follow or unfollow a user |
+| `GET /api/notifications?page=0&size=20` | List persisted notifications for the authenticated user |
 
-See [docs/VERIFICATION_REPORT.md](docs/VERIFICATION_REPORT.md) for the complete list of what
-was found, fixed, and how each item was actually verified.
+The auth endpoints are rate-limited to 5 requests per minute, post creation to 30 per minute, and feed reads to 100 per minute. Request DTOs use Jakarta validation; JPA repositories use parameterized queries; ownership violations return 403; unexpected server errors are logged and returned without raw exception details.
 
-## Contributing
+### Security considerations
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- The application disables CSRF and configures CORS with `allowedOriginPatterns("*")` and credentials. Restrict browser origins and review CSRF protections before production use.
+- JWTs are stored in browser `localStorage`; an XSS flaw could expose them. Production deployments should assess a safer token-storage strategy.
+- The repository's Compose values and `.env.example` values are development placeholders, not production secrets.
+- The app does not enforce HTTPS. Terminate TLS at a trusted proxy/platform and use secure transport for all external services.
+- Actuator health/metrics endpoints and Swagger are permitted by the current API security rules; apply deployment-level access controls as needed.
 
-## License
+See [docs/SECURITY.md](docs/SECURITY.md) for configuration guidance and the [verification report](docs/VERIFICATION_REPORT.md) for tested behavior and known gaps.
 
-This project is licensed under the MIT License.
+## Limitations and roadmap
+
+| Status | Area | Current state / next step |
+|---|---|---|
+| **Partial** | Google OAuth2 | Spring client and backend success handler exist, but the frontend has no sign-in entry or token-capture route; tokens are redirected in URL query parameters and must not be treated as production-safe. End-to-end login also needs real Google credentials |
+| **Not implemented** | Image uploads | Posts accept an `imageUrl`; there is no upload endpoint or object-storage integration |
+| **Not implemented** | Search | Navbar search is a placeholder and has no search API/workflow |
+| **Not implemented** | Settings | The Settings route renders a “coming soon” placeholder |
+| **Current scope** | Feed ranking | Feed is chronological, not ranked or ML-personalized |
+| **Known trade-off** | Feed cache invalidation | Mutations evict every `userFeed` entry rather than only affected users' pages |
+| **Known gap** | Kafka delivery guarantees | The notification consumer has no deduplication key or dead-letter topic; repeated event delivery can create duplicate notifications |
+| **Not implemented** | Production deployment | No cloud deployment target, IaC, or live application URL is configured. The GitHub Actions deploy job is a no-op after image publishing |
+| **Environment-dependent** | OAuth and managed services | Provider login and external PostgreSQL/Redis/Kafka deployment need real accounts, secrets, and operational verification |
+
+No application recording is included. Contributors can run the local stack and capture a genuine demo later; the Playwright happy-path test is documented above but is not a substitute for a recording.
+
+## Contributing and attribution
+
+- Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [SETUP_GUIDE.md](SETUP_GUIDE.md).
+- Review [docs/VERIFICATION_REPORT.md](docs/VERIFICATION_REPORT.md) for the audit trail and verification scope.
+- Read [DEPLOYMENT_FREE.md](DEPLOYMENT_FREE.md) for a manual provider setup guide; it does not describe a currently deployed instance.
+- This project retains the original MIT license and attribution in [LICENSE](LICENSE). The application derives from the [upstream Social Media Platform repository](https://github.com/danishirfan21/Social-Media-Platform).
+- This README redesign and `assets/readme-hero.svg` are documentation/presentation additions; they do not claim authorship of the inherited application implementation.
+
+## Project links
+
+| Repository | Contributions | License | Maintainer profile |
+|---|---|---|---|
+| [SocialMediaPlatform](https://github.com/channallikrishnasai/SocialMediaPlatform) | [CONTRIBUTING.md](CONTRIBUTING.md) | [MIT](LICENSE) | [@channallikrishnasai](https://github.com/channallikrishnasai) |
+
+<p align="center">
+  <sub>Designed to make the system visible: the architecture, the trade-offs, and the work still ahead.</sub>
+</p>

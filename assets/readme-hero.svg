@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 660" role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">Social Media Platform — real-time social experience</title>
+  <desc id="hero-desc">Original animated concept artwork showing a dark glass interface, social feed cards, connected notification nodes, and the Spring Boot and React technology stack. This is an illustration, not a screenshot.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#080d1c"/>
+      <stop offset=".52" stop-color="#10152d"/>
+      <stop offset="1" stop-color="#17102d"/>
+      <animate attributeName="x1" values="0;0.18;0" dur="18s" repeatCount="indefinite"/>
+      <animate attributeName="y2" values="1;0.78;1" dur="16s" repeatCount="indefinite"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#202a48" stop-opacity=".88"/>
+      <stop offset=".55" stop-color="#121a32" stop-opacity=".84"/>
+      <stop offset="1" stop-color="#251738" stop-opacity=".9"/>
+    </linearGradient>
+    <linearGradient id="cyan-violet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4de8ef"/>
+      <stop offset=".52" stop-color="#8175ff"/>
+      <stop offset="1" stop-color="#ec58d7"/>
+    </linearGradient>
+    <linearGradient id="card-glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d9e8" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#a35cff" stop-opacity=".08"/>
+    </linearGradient>
+    <radialGradient id="ambient-cyan">
+      <stop offset="0" stop-color="#21cfe0" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#21cfe0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ambient-pink">
+      <stop offset="0" stop-color="#d246d7" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#d246d7" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#9db4ff" stroke-opacity=".055" stroke-width="1"/>
+    </pattern>
+    <filter id="blur-strong" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="32"/>
+    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#02040d" flood-opacity=".48"/>
+    </filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="screen-clip">
+      <rect x="755" y="104" width="612" height="455" rx="26"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1440" height="660" rx="28" fill="url(#bg)"/>
+  <rect width="1440" height="660" rx="28" fill="url(#grid)"/>
+  <ellipse cx="1030" cy="290" rx="425" ry="300" fill="url(#ambient-cyan)" filter="url(#blur-strong)"/>
+  <ellipse cx="1260" cy="480" rx="300" ry="220" fill="url(#ambient-pink)" filter="url(#blur-strong)"/>
+
+  <g fill="#b4eaff">
+    <circle cx="78" cy="72" r="1.5" opacity=".55"/>
+    <circle cx="584" cy="110" r="1.2" opacity=".45"/>
+    <circle cx="690" cy="555" r="1.5" opacity=".5"/>
+    <circle cx="1372" cy="90" r="1.4" opacity=".62"/>
+    <circle cx="131" cy="540" r="1.3" opacity=".5"/>
+    <circle cx="522" cy="455" r="1.2" opacity=".44"/>
+    <circle cx="1392" cy="594" r="1.4" opacity=".42"/>
+  </g>
+  <circle cx="584" cy="110" r="1.5" fill="#b4eaff" opacity=".2">
+    <animate attributeName="opacity" values=".2;.8;.2" dur="4.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="131" cy="540" r="1.4" fill="#e875fb" opacity=".25">
+    <animate attributeName="opacity" values=".25;.75;.25" dur="6s" repeatCount="indefinite"/>
+  </circle>
+
+  <g fill="none" stroke="url(#cyan-violet)" stroke-width="1.5" opacity=".58">
+    <path d="M608 194C683 194 685 131 757 131" stroke-dasharray="5 9">
+      <animate attributeName="stroke-dashoffset" values="0;-56" dur="5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M624 478C696 478 705 524 783 524" stroke-dasharray="3 11">
+      <animate attributeName="stroke-dashoffset" values="0;56" dur="7s" repeatCount="indefinite"/>
+    </path>
+    <path d="M1288 115C1354 115 1362 160 1404 160" stroke-dasharray="4 10">
+      <animate attributeName="stroke-dashoffset" values="0;-56" dur="6s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <g filter="url(#glow)">
+    <circle cx="608" cy="194" r="3.5" fill="#53e5ec"/>
+    <circle cx="757" cy="131" r="3.5" fill="#8876ff"/>
+    <circle cx="624" cy="478" r="3" fill="#aa68f5"/>
+    <circle cx="783" cy="524" r="3" fill="#e65bd6"/>
+    <circle cx="1288" cy="115" r="3" fill="#56dce9"/>
+    <circle cx="1404" cy="160" r="3" fill="#dc64df"/>
+  </g>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">
+    <g transform="translate(72 83)">
+      <rect width="190" height="34" rx="17" fill="#152238" stroke="#6ce4ef" stroke-opacity=".35"/>
+      <circle cx="17" cy="17" r="4" fill="#62e5e9">
+        <animate attributeName="opacity" values=".55;1;.55" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <text x="31" y="22" fill="#b9d9ec" font-size="11" font-weight="700" letter-spacing="1.55">ENGINEERED TO CONNECT</text>
+    </g>
+
+    <text x="69" y="222" fill="#f6f7ff" font-size="47" font-weight="780" letter-spacing="1.2">SOCIAL MEDIA</text>
+    <text x="69" y="282" fill="url(#cyan-violet)" font-size="53" font-weight="820" letter-spacing="1.7">PLATFORM</text>
+    <rect x="72" y="308" width="84" height="3" rx="2" fill="url(#cyan-violet)"/>
+    <text x="72" y="352" fill="#d4deef" font-size="18" font-weight="450">A real-time social experience engineered</text>
+    <text x="72" y="379" fill="#d4deef" font-size="18" font-weight="450">with Spring Boot and React.</text>
+    <text x="72" y="424" fill="#8291ae" font-size="12" font-weight="650" letter-spacing="2.1">A FULL-STACK ENGINEERING SHOWCASE</text>
+
+    <g transform="translate(72 461)" font-size="12" font-weight="650">
+      <g>
+        <rect width="113" height="34" rx="11" fill="#15233a" stroke="#64dfe9" stroke-opacity=".4"/>
+        <circle cx="17" cy="17" r="4" fill="#64dfe9"/>
+        <text x="29" y="21" fill="#d6faff">Spring Boot</text>
+      </g>
+      <g transform="translate(122 0)">
+        <rect width="82" height="34" rx="11" fill="#172039" stroke="#7584ff" stroke-opacity=".45"/>
+        <circle cx="17" cy="17" r="4" fill="#7d88ff"/>
+        <text x="29" y="21" fill="#e0e3ff">React</text>
+      </g>
+      <g transform="translate(213 0)">
+        <rect width="116" height="34" rx="11" fill="#211b3b" stroke="#bb68e7" stroke-opacity=".45"/>
+        <circle cx="17" cy="17" r="4" fill="#bb68e7"/>
+        <text x="29" y="21" fill="#f2dfff">TypeScript</text>
+      </g>
+      <g transform="translate(0 45)">
+        <rect width="116" height="34" rx="11" fill="#15233a" stroke="#54c6ed" stroke-opacity=".4"/>
+        <circle cx="17" cy="17" r="4" fill="#54c6ed"/>
+        <text x="29" y="21" fill="#d8f2ff">PostgreSQL</text>
+      </g>
+      <g transform="translate(125 45)">
+        <rect width="75" height="34" rx="11" fill="#172039" stroke="#8f7cff" stroke-opacity=".45"/>
+        <circle cx="17" cy="17" r="4" fill="#8f7cff"/>
+        <text x="29" y="21" fill="#e7e0ff">Redis</text>
+      </g>
+      <g transform="translate(209 45)">
+        <rect width="83" height="34" rx="11" fill="#251a36" stroke="#ec65d5" stroke-opacity=".45"/>
+        <circle cx="17" cy="17" r="4" fill="#ec65d5"/>
+        <text x="29" y="21" fill="#ffe0f7">Kafka</text>
+      </g>
+    </g>
+
+    <g transform="rotate(-2 1058 330)" filter="url(#shadow)">
+      <rect x="770" y="117" width="612" height="455" rx="28" fill="#07101e" fill-opacity=".45" stroke="#a8bbff" stroke-opacity=".18"/>
+      <rect x="755" y="104" width="612" height="455" rx="26" fill="url(#panel)" stroke="#b9d0ff" stroke-opacity=".23"/>
+      <g clip-path="url(#screen-clip)">
+        <rect x="755" y="104" width="612" height="455" fill="url(#card-glow)"/>
+        <path d="M755 161H1367" stroke="#9cb5e5" stroke-opacity=".15"/>
+        <circle cx="785" cy="133" r="5" fill="#ee6b9a"/>
+        <circle cx="803" cy="133" r="5" fill="#e5b459"/>
+        <circle cx="821" cy="133" r="5" fill="#54d6bd"/>
+        <text x="852" y="138" fill="#b3c3df" font-size="11" font-weight="600" letter-spacing="1.1">SOCIAL / FEED</text>
+        <g transform="translate(1288 120)">
+          <circle cx="16" cy="13" r="13" fill="#303755" stroke="#a8b6ef" stroke-opacity=".35"/>
+          <circle cx="16" cy="10" r="4" fill="#b9c8ec"/>
+          <path d="M8 21c1-5 4-7 8-7s7 2 8 7" fill="#8394c7"/>
+        </g>
+        <rect x="787" y="181" width="548" height="80" rx="17" fill="#111b33" fill-opacity=".8" stroke="#b8cdf7" stroke-opacity=".13"/>
+        <circle cx="813" cy="207" r="12" fill="#6557cb"/>
+        <circle cx="813" cy="204" r="4" fill="#f0dfff"/>
+        <path d="M805 216c2-5 5-7 8-7s6 2 8 7" fill="#bda8ff"/>
+        <text x="836" y="205" fill="#edf2ff" font-size="12" font-weight="700">Your following feed</text>
+        <text x="836" y="224" fill="#8d9dbb" font-size="10">A fresh update from your community</text>
+        <rect x="804" y="237" width="188" height="7" rx="4" fill="#394865"/>
+        <rect x="804" y="237" width="142" height="7" rx="4" fill="url(#cyan-violet)" opacity=".78"/>
+        <circle cx="1302" cy="210" r="3" fill="#59e0db"/>
+        <text x="1312" y="214" fill="#84dedb" font-size="9">LIVE</text>
+
+        <rect x="787" y="278" width="548" height="115" rx="17" fill="#101a30" fill-opacity=".84" stroke="#b8cdf7" stroke-opacity=".14"/>
+        <circle cx="814" cy="304" r="12" fill="#8754a9"/>
+        <circle cx="814" cy="301" r="4" fill="#f7d9f1"/>
+        <path d="M806 313c2-5 5-7 8-7s6 2 8 7" fill="#dfa0d7"/>
+        <text x="837" y="303" fill="#edf2ff" font-size="11" font-weight="700">Maya Chen</text>
+        <text x="837" y="320" fill="#8796b3" font-size="9">Shared a moment · 2 min</text>
+        <rect x="804" y="336" width="483" height="8" rx="4" fill="#586782" opacity=".76"/>
+        <rect x="804" y="352" width="420" height="8" rx="4" fill="#465572" opacity=".63"/>
+        <rect x="804" y="368" width="308" height="8" rx="4" fill="#35435e" opacity=".66"/>
+        <g transform="translate(1272 363)">
+          <path d="M0 4c0-5 7-7 10-2 3-5 10-3 10 2 0 4-10 11-10 11S0 8 0 4Z" fill="#ef6eae"/>
+          <animateTransform attributeName="transform" type="scale" values="1;1.12;1" dur="2.2s" repeatCount="indefinite" additive="sum"/>
+        </g>
+
+        <rect x="787" y="410" width="548" height="116" rx="17" fill="#101a30" fill-opacity=".84" stroke="#b8cdf7" stroke-opacity=".14"/>
+        <circle cx="814" cy="437" r="12" fill="#356f91"/>
+        <circle cx="814" cy="434" r="4" fill="#d8f7ff"/>
+        <path d="M806 446c2-5 5-7 8-7s6 2 8 7" fill="#86d9e6"/>
+        <text x="837" y="436" fill="#edf2ff" font-size="11" font-weight="700">Alex Rivera</text>
+        <text x="837" y="453" fill="#8796b3" font-size="9">New connection · just now</text>
+        <rect x="804" y="470" width="458" height="8" rx="4" fill="#53627e" opacity=".73"/>
+        <rect x="804" y="486" width="379" height="8" rx="4" fill="#3d4c69" opacity=".68"/>
+        <g transform="translate(1300 432)">
+          <circle cx="0" cy="0" r="13" fill="#272546" stroke="#b378f2" stroke-opacity=".5"/>
+          <path d="M-5 0h10M0-5v10" stroke="#d5a1ff" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+      </g>
+      <rect x="755" y="104" width="612" height="455" rx="26" fill="none" stroke="url(#cyan-violet)" stroke-opacity=".37"/>
+    </g>
+
+    <g transform="translate(676 88) rotate(5)" filter="url(#shadow)">
+      <rect width="232" height="91" rx="18" fill="#17233b" fill-opacity=".95" stroke="#72e4eb" stroke-opacity=".56"/>
+      <circle cx="29" cy="30" r="13" fill="#183d4a" stroke="#70e6ec" stroke-opacity=".4"/>
+      <path d="M24 30l4 4 7-9" fill="none" stroke="#7aeeea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="52" y="29" fill="#eef7ff" font-size="11" font-weight="700">New notification</text>
+      <text x="52" y="48" fill="#9cb1ca" font-size="9">Someone reacted to your post</text>
+      <rect x="18" y="67" width="195" height="3" rx="2" fill="#647b9c" opacity=".34"/>
+      <rect x="18" y="67" width="92" height="3" rx="2" fill="url(#cyan-violet)">
+        <animate attributeName="width" values="65;132;65" dur="7s" repeatCount="indefinite"/>
+      </rect>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -5;0 0" dur="5.5s" repeatCount="indefinite" additive="sum"/>
+    </g>
+    <g transform="translate(1197 486) rotate(-5)" filter="url(#shadow)">
+      <rect width="190" height="70" rx="17" fill="#211a39" fill-opacity=".96" stroke="#d36ce5" stroke-opacity=".45"/>
+      <circle cx="26" cy="26" r="7" fill="#eb64d3" opacity=".92" filter="url(#glow)"/>
+      <text x="43" y="27" fill="#f4eaff" font-size="10" font-weight="700">EVENT STREAM</text>
+      <text x="18" y="51" fill="#ad9abd" font-size="9">Kafka → persist → deliver</text>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 5;0 0" dur="6.5s" repeatCount="indefinite" additive="sum"/>
+    </g>
+
+    <g transform="translate(1104 80)">
+      <circle cx="0" cy="0" r="23" fill="none" stroke="#7f7bff" stroke-opacity=".25"/>
+      <circle cx="0" cy="-23" r="3.5" fill="#db69e6" filter="url(#glow)"/>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="17s" repeatCount="indefinite"/>
+        <circle cx="23" cy="0" r="3" fill="#55dce9" filter="url(#glow)"/>
+      </g>
+      <circle cx="0" cy="0" r="4" fill="#8592ff">
+        <animate attributeName="r" values="3;5;3" dur="3.4s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <text x="72" y="615" fill="#667691" font-size="10" font-weight="600" letter-spacing="1.7">CONNECTED BY DESIGN</text>
+    <path d="M225 611H600" stroke="url(#cyan-violet)" stroke-opacity=".42"/>
+    <circle cx="600" cy="611" r="2.5" fill="#69dce8"/>
+  </g>
+</svg>
